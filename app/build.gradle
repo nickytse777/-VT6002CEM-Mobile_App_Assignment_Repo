@@ -1,0 +1,68 @@
+plugins {
+    id 'com.android.application'
+}
+
+def loadLocalProp(String key, String fallback) {
+    def value = fallback
+    def localPropsFile = rootProject.file("local.properties")
+    if (localPropsFile.exists()) {
+        def localProps = new Properties()
+        localPropsFile.withInputStream { localProps.load(it) }
+        def customValue = localProps.getProperty(key, "").trim()
+        if (customValue) {
+            value = customValue
+        }
+    }
+    return value
+}
+
+android {
+    namespace 'com.fengshuimaster.app'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "com.fengshuimaster.app"
+        minSdk 26
+        targetSdk 35
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        debug {
+            buildConfigField "String", "BACKEND_API_BASE_URL", "\"${loadLocalProp("BACKEND_API_BASE_URL_DEBUG", "http://10.0.2.2:8787")}\""
+            manifestPlaceholders = [
+                    cleartextTraffic   : "true",
+                    networkSecurityConfig: "@xml/network_security_config_debug"
+            ]
+        }
+        release {
+            buildConfigField "String", "BACKEND_API_BASE_URL", "\"${loadLocalProp("BACKEND_API_BASE_URL_RELEASE", "https://your-backend.example.com")}\""
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            manifestPlaceholders = [
+                    cleartextTraffic   : "false",
+                    networkSecurityConfig: "@xml/network_security_config_release"
+            ]
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    buildFeatures {
+        buildConfig true
+        viewBinding true
+    }
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'com.google.android.material:material:1.12.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
+    implementation 'androidx.lifecycle:lifecycle-livedata:2.8.7'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel:2.8.7'
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+}
